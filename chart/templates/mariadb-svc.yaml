@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "journals.fullname" . }}-mariadb
+  labels:
+    app.kubernetes.io/name: {{ include "journals.name" . }}-mariadb
+    app.kubernetes.io/instance: {{ .Release.Name }}
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+    - port: 3306
+      targetPort: mysql
+      protocol: TCP
+      name: mysql
+  selector:
+    app.kubernetes.io/name: {{ include "journals.name" . }}-mariadb
+    app.kubernetes.io/instance: {{ .Release.Name }}
