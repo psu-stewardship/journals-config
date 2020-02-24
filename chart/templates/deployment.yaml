@@ -14,6 +14,15 @@ spec:
       labels:
         {{- include "journals.selectorLabels" . | nindent 8 }}
     spec:
+      volumes:
+        {{- if .Values.persistence.enabled }}
+        - name: journals-data-public
+          persistentVolumeClaim:
+            claimName: {{ include "journals.fullname" . }}-public
+        - name: journals-data-private
+          persistentVolumeClaim:
+            claimName: {{ include "journals.fullname" . }}-private
+        {{- end }}
     {{- with .Values.imagePullSecrets }}
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
@@ -27,6 +36,12 @@ spec:
             {{- toYaml .Values.securityContext | nindent 12 }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
+          volumeMounts:
+            # TODO: parameterize the mount path to use the same parameter as the config.inc.php
+            - name: journals-data-public
+              mountPath: /var/www/html/public/
+            - name: journals-data-private
+              mountPath: /var/www/files/
           env:
               - name: OJS_CLI_INSTALL
                 value: "1"

@@ -70,6 +70,17 @@ resources: {}
   #   cpu: 100m
   #   memory: 128Mi
 
+
+# PVC for journals data
+persistence:
+  enabled: true
+  storageClassName: nfs-client
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 8Gi
+
 nodeSelector: {}
 
 tolerations: []
