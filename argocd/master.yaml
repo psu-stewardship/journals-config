@@ -16,6 +16,8 @@ spec:
         ingress:
           hosts:
           - host: s-qa-qa.dsrd.libraries.psu.edu
+        image:
+          repository: harbor.k8s.libraries.psu.edu/library/journals
   destination:
     server: https://kubernetes.default.svc
     namespace: s-qa-qa
