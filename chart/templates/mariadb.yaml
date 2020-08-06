@@ -14,6 +14,16 @@ spec:
     matchLabels:
       app.kubernetes.io/name: {{ include "journals.name" . }}-mariadb
       app.kubernetes.io/instance: {{ .Release.Name }}
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+      spec:
+        accessModes:
+        - ReadWriteOnce
+        storageClassName: nfs-client
+        resources:
+          requests:
+            storage: 8Gi
   template:
     metadata:
       labels:
@@ -26,6 +36,9 @@ spec:
         - name: {{ .Chart.Name }}-mariadb
           image: "{{ .Values.mariadb.image }}:{{ .Values.mariadb.imageTag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
+          volumeMounts:
+          - mountPath: /var/lib/mysql
+            name: data
           env:
             - name: MYSQL_USER
               value: {{ .Values.mariadb.user }}

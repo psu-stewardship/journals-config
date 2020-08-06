@@ -5,8 +5,8 @@
 replicaCount: 1
 
 image:
-  repository: harbor.dsrd.libraries.psu.edu/library/journals
-  tag: 42
+  repository: harbor.k8s.libraries.psu.edu/library/journals
+  tag: 10
   pullPolicy: IfNotPresent
 
 imagePullSecrets: []

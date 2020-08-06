@@ -4,7 +4,7 @@ set -u
 # TODO get project_name from github, allow overrides
 project_name=journals
 # Set to true when testing
-skip_git=false
+skip_git=true
 
 domain_name="dsrd.libraries.psu.edu"
 config_env=${CONFIG_ENV:-dev}
@@ -67,7 +67,7 @@ else
 fi
 
 # Turn the yaml into a block for helm values
-#sed -i -e 's/[[:space:]]values:/values: |/g' argocd/$branch_slugified.yaml
+sed -i -e 's/[[:space:]]values:/values: |/g' argocd/$branch_slugified.yaml
 
 if [ "$skip_git" = true ]; then 
   echo "not pushing the file to git"
