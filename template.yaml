@@ -1,0 +1,34 @@
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: journals-template
+  # You'll usually want to add your resources to the argocd namespace.
+  namespace: argocd
+  # Add a this finalizer ONLY if you want these to cascade delete.
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  # The project the application belongs to.
+  project: default
+  # Source of the application manifests
+  source:
+    repoURL: 'https://harbor.k8s.libraries.psu.edu/chartrepo/library'
+    targetRevision: 0.1.0
+    chart: journals
+    helm:
+      values:
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: journals-template
+
+  # Sync policy
+  syncPolicy:
+    automated: {}
+
+  # Ignore differences at the specified json pointers
+  ignoreDifferences:
+    - group: apps
+      kind: Deployment
+      jsonPointers:
+        - /spec/replicas
