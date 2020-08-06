@@ -20,6 +20,8 @@ spec:
         ingress:
           hosts:
             - host: journals-qa.dsrd.libraries.psu.edu
+              path:
+                - / 
         image:
           tag: 11
   destination:
