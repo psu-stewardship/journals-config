@@ -13,7 +13,7 @@ spec:
   # Source of the application manifests
   source:
     repoURL: 'https://harbor.k8s.libraries.psu.edu/chartrepo/library'
-    targetRevision: 0.1.2
+    targetRevision: 0.1.3
     chart: journals
     helm:
       values: |
