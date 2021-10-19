@@ -6,8 +6,6 @@ project_name=journals
 # Set to true when testing
 skip_git=true
 
-cluster_name=${TARGET_CLUSTER:-dev}
-
 domain_name="dsrd.libraries.psu.edu"
 config_env=${CONFIG_ENV:-dev}
 config_branch=${CONFIG_BRANCH:-master}
@@ -19,7 +17,6 @@ git config user.name "CircleCI"
 
 ## create sluggified branch
 branch_slugified=$(echo $CIRCLE_BRANCH | sed -e "s/[^[:alnum:]]/-/g" | tr -s "-" | tr A-Z a-z| sed -e "s/preview-//g")
-manifest="clusters/$cluster_name/manifests/$project_name/$branch_slugified.yaml"
 
 ## Here we set the customizables based off branch name. we'll do all switching based off branch name?
 ## TODO maybe pass these from circle?
@@ -42,24 +39,24 @@ else
 fi
 
 initalize_app=false
-if [ ! -f $manifest.yaml ]; then
+if [ ! -f argocd/$branch_slugified.yaml ]; then
     initalize_app=true
-    cp template.yaml $manifest.yaml
+    cp template.yaml argocd/$branch_slugified.yaml
 fi
 
 # Turn the block into yaml before proccessing
-sed -i -e 's/^\([[:space:]]*\)values: |/\1values:/g' $manifest.yaml
+sed -i -e 's/^\([[:space:]]*\)values: |/\1values:/g' argocd/$branch_slugified.yaml
 
 function initalize_app {
-    yq w $manifest.yaml metadata.name $app_name -i
-    yq w $manifest.yaml spec.destination.namespace $dest_namespace -i
-    yq w $manifest.yaml spec.source.helm.values.ingress.hosts.[+].host $fqdn -i
-    yq w $manifest.yaml spec.source.helm.values.image.tag $CIRCLE_SHA1 -i
+    yq w argocd/$branch_slugified.yaml metadata.name $app_name -i
+    yq w argocd/$branch_slugified.yaml spec.destination.namespace $dest_namespace -i
+    yq w argocd/$branch_slugified.yaml spec.source.helm.values.ingress.hosts.[+].host $fqdn -i
+    yq w argocd/$branch_slugified.yaml spec.source.helm.values.image.tag $CIRCLE_SHA1 -i
 }
 
 function update_app {
-    yq w $manifest.yaml spec.source.helm.values.image.tag $CIRCLE_SHA1 -i
-    yq w $manifest.yaml spec.source.helm.values.image.repository $image_repository -i
+    yq w argocd/$branch_slugified.yaml spec.source.helm.values.image.tag $CIRCLE_SHA1 -i
+    yq w argocd/$branch_slugified.yaml spec.source.helm.values.image.repository $image_repository -i
 }
 
 ## we only update the image tag if the file has been copied.
@@ -70,13 +67,13 @@ else
 fi
 
 # Turn the yaml into a block for helm values
-sed -i -e 's/[[:space:]]values:/values: |/g' $manifest.yaml
+sed -i -e 's/[[:space:]]values:/values: |/g' argocd/$branch_slugified.yaml
 
 if [ "$skip_git" = true ]; then 
   echo "not pushing the file to git"
 else
     ## add the file to git, and push it up 
-    git add $manifest.yaml
+    git add argocd/$branch_slugified.yaml
     added=$(git status --porcelain=v1| grep "^A\|^M")
     git checkout $config_branch
     if [[ $added ]]; then
