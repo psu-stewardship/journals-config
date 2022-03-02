@@ -1,3 +1,4 @@
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -11,22 +12,17 @@ spec:
       {{- include "journals.selectorLabels" . | nindent 6 }}
   template:
     metadata:
+      annotations:
+    {{- with .Values.podAnnotations }}
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
       labels:
         {{- include "journals.selectorLabels" . | nindent 8 }}
     spec:
-      volumes:
-        {{- if .Values.persistence.enabled }}
-        - name: journals-data-public
-          persistentVolumeClaim:
-            claimName: {{ include "journals.fullname" . }}-public
-        - name: journals-data-private
-          persistentVolumeClaim:
-            claimName: {{ include "journals.fullname" . }}-private
-        {{- end }}
-    {{- with .Values.imagePullSecrets }}
+      {{- with .Values.imagePullSecrets }}
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
-    {{- end }}
+      {{- end }}
       serviceAccountName: {{ include "journals.serviceAccountName" . }}
       securityContext:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
@@ -34,30 +30,11 @@ spec:
         - name: {{ .Chart.Name }}
           securityContext:
             {{- toYaml .Values.securityContext | nindent 12 }}
-          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
-          volumeMounts:
-            # TODO: parameterize the mount path to use the same parameter as the config.inc.php
-            - name: journals-data-public
-              mountPath: /var/www/html/public/
-            - name: journals-data-private
-              mountPath: /var/www/files/
-          env:
-              - name: OJS_CLI_INSTALL
-                value: "1"
-            {{- if .Values.mariadb.enabled }}
-              - name: OJS_DB_HOST
-                value: {{ include "journals.fullname" . }}-mariadb
-              - name: OJS_DB_USER
-                value: {{ .Values.mariadb.user }}
-              - name: OJS_DB_PASSWORD
-                value: {{ .Values.mariadb.password }}
-              - name: OJS_DB_NAME
-                value: {{ .Values.mariadb.name }}
-            {{- end }}
           ports:
             - name: http
-              containerPort: 80
+              containerPort: {{ .Values.containerPort }}
               protocol: TCP
           livenessProbe:
             httpGet:
@@ -73,11 +50,11 @@ spec:
       nodeSelector:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-    {{- with .Values.affinity }}
+      {{- with .Values.affinity }}
       affinity:
         {{- toYaml . | nindent 8 }}
-    {{- end }}
-    {{- with .Values.tolerations }}
+      {{- end }}
+      {{- with .Values.tolerations }}
       tolerations:
         {{- toYaml . | nindent 8 }}
-    {{- end }}
+      {{- end }}
